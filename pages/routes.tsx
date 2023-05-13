@@ -1,6 +1,6 @@
 import type { NextPage } from "next"
 import { apiCall } from "../components/api"
-import { dateString, exposition, route } from "../client"
+import { dateString, queryRoutes, route } from "../client"
 import { PageHeading } from "../components/page"
 import { IconCalendarEvent, IconClock, IconLine, IconShare } from "@tabler/icons"
 import { Accordion, ActionIcon, Group, Loader, Skeleton, Slider, Text, Timeline, Stack, Space } from "@mantine/core"
@@ -10,6 +10,7 @@ import { memo, useEffect, useState } from "react"
 import { yahoo, office365, google, ics, outlook, CalendarEvent } from "calendar-link";
 import { useRouter } from "next/router"
 import { useCookies } from "react-cookie"
+import { decompressFromBase64 } from "lz-string"
 
 const cal = (service: number, body: any) => {
     window.open((() => {
@@ -42,8 +43,8 @@ const Route = ({ route, index }: { route: route, index: any }) => {
 
     useEffect(() => {
         if (!body && exposition.length) {
-            const start = new Date(`${router.query['d'] || dateString(new Date())} ${route.departureTime}`)
-            const end = new Date(`${router.query['d'] || dateString(new Date())} ${route.arrivalTime}`)
+            const start = new Date(`${router.query['d'] || dateString(new Date())} ${route.indulasi_ido}`)
+            const end = new Date(`${router.query['d'] || dateString(new Date())} ${route.erkezesi_ido}`)
             let details: string[] = []
             for (let action of exposition) {
                 const fb = action.action === "felszállás" ? action.departurePlatform ? `\nKocsiállás: ${action.departurePlatform}` : '' : ''
@@ -56,7 +57,7 @@ const Route = ({ route, index }: { route: route, index: any }) => {
                 end,
                 description: `${details.join("\n")}`,
                 location: exposition[0].station,
-                title: `${route.departure[0]} - ${route.arrival[0]}`
+                title: `${route.departureCity} - ${route.arrivalCity}`
             })
         }
     }, [body, exposition])
@@ -141,7 +142,7 @@ const Routes: NextPage = (props: any) => {
         if (cookies["use-route-limit"] === "true") {
             let disp: any = []
             setDisplay(props.routes.routes.map((item: route, i: any) => {
-                const start = item.departureTime.split(":").map((e: string) => Number(e))
+                const start = item.indulasi_ido.split(":").map((e: string) => Number(e))
                 const startmin = start[0] * 60 + start[1]
                 if (startmin <= time!) return
                 disp.push(i)
@@ -163,7 +164,7 @@ const Routes: NextPage = (props: any) => {
                 display.map((key: any, i: any) => {
                     const item: route = props.routes.routes[key]
                     if (!item) return <></>
-                    const start = item.departureTime.split(":").map((e: string) => Number(e))
+                    const start = item.indulasi_ido.split(":").map((e: string) => Number(e))
                     const startmin = start[0] * 60 + start[1]
                     if (cookies["use-route-limit"] === "true" && startmin <= time! || i > Number(cookies["route-limit"])) return <div key={key} />
                     return (<Accordion.Item my="sm" key={key} value={key.toString()}>
@@ -178,7 +179,7 @@ const Routes: NextPage = (props: any) => {
 
 Routes.getInitialProps = async (ctx: any) => {
     return {
-        routes: await apiCall("POST", `${process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://menetrendek.info"}/api/routes`, { from: ctx.query.from, to: ctx.query.to, date: ctx.query.d || dateString(new Date()) })
+        routes: await queryRoutes(ctx.query.d || new Date(), JSON.parse(decompressFromBase64(ctx.query.from)), JSON.parse(decompressFromBase64(ctx.query.to))),
     }
 }
 

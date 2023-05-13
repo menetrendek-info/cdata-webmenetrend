@@ -22,18 +22,10 @@ import { useMediaQuery } from '@mantine/hooks';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { MyThemeIcon } from '@/components/brand';
-import { testCORSBlocker } from '@/client';
 
 const Home: NextPage = () => {
     const versionHide = useMediaQuery('(max-width: 435px)');
     const [donate, setDonate] = useState(false);
-    const [corsBlocked, setCorsBlocked] = useState(false);
-
-    useEffect(() => {
-        if (!corsBlocked) {
-            testCORSBlocker().then(setCorsBlocked)
-        }
-    }, [corsBlocked])
 
     return (<>
         <Group onClick={() => setDonate(false)} position='center' sx={{ pointerEvents: donate ? 'all' : 'none', overflow: 'hidden', transition: 'background .2s', zIndex: 9999, position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: donate ? 'rgba(0,0,0,.6)' : 'transparent' }}>
@@ -46,7 +38,6 @@ const Home: NextPage = () => {
             <Search />
             <Space h="xl" />
             <Space h="md" />
-            {JSON.stringify(corsBlocked)}
         </Stack>
         <Stack my="lg" spacing={0}>
             <PageSection icon={IconPlus} title="Miért válassz minket?" subtitle="Íme néhány dolog, amiben egyszerűen jobbak vagyunk" />

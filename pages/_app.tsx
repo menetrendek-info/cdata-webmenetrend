@@ -7,7 +7,7 @@ import { IconInfoCircle, IconRoadSign, IconSettings } from '@tabler/icons';
 import { useEffect, useState } from 'react';
 import "@/styles/globals.css"
 import { createContext } from 'react';
-import { Stop } from '@/components/stops';
+import { Stop } from '@/client';
 import Script from 'next/script';
 import { PWAAssets } from '@/builtComponents/pwa';
 import { useUserAgent } from '@/components/ua';

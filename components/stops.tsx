@@ -7,12 +7,7 @@ import { apiCall } from "./api";
 import { useLocalStorage } from "@mantine/hooks";
 import { showNotification } from "@mantine/notifications";
 import { isEqual } from "lodash";
-
-export interface Stop {
-    value?: string
-    network?: number;
-    id: number;
-}
+import { Stop, queryStops } from "@/client";
 
 const Dropdown = ({ children, ...props }: any) => {
     return (<ScrollArea
@@ -24,9 +19,9 @@ const Dropdown = ({ children, ...props }: any) => {
     </ScrollArea>)
 }
 
-export const StopIcon = ({ network, size, ...props }: { network: number, size?: number } & any) => {
+export const StopIcon = ({ network_id, size, ...props }: { network_id: number, size?: number } & any) => {
     props = { ...props, size: size ? size : 24 }
-    switch (network) {
+    switch (network_id) {
         case 0: // City
             return <IconMapPin {...props} />
         case 1: // Bus station
@@ -52,10 +47,10 @@ export const StopIcon = ({ network, size, ...props }: { network: number, size?: 
     }
 }
 
-export const ColoredStopIcon = (({ network, size, ...props }: { network: number, size?: number } & any) => {
+export const ColoredStopIcon = (({ network_id, size, ...props }: { network_id: number, size?: number } & any) => {
     let color: MantineColor | undefined = undefined
     let mySize = size ? size : 24
-    switch (network) {
+    switch (network_id) {
         case 0: // City
             color = "grape"
             break
@@ -88,15 +83,15 @@ export const ColoredStopIcon = (({ network, size, ...props }: { network: number,
         default:
             break
     }
-    return <ThemeIcon color={color || "dark"} sx={{ borderRadius: '100%' }} variant="light" size={mySize}><StopIcon stroke={props.stroke} network={network} size={(mySize / 7) * 6} /></ThemeIcon>
+    return <ThemeIcon color={color || "dark"} sx={{ borderRadius: '100%' }} variant="light" size={mySize}><StopIcon stroke={props.stroke} network_id={network_id} size={(mySize / 7) * 6} /></ThemeIcon>
 })
 
 const AutoCompleteItem = forwardRef<HTMLDivElement, SelectItemProps & Stop>(
-    ({ value, network, id, ...others }: SelectItemProps & Stop, ref) => (
+    ({ value, network_id, id, ...others }: SelectItemProps & Stop, ref) => (
         <div ref={ref} {...others}>
             <Group noWrap align="left">
                 <div style={{ zIndex: '99 !important' }}>
-                    <StopIcon network={network!} />
+                    <StopIcon network_id={network_id!} />
                 </div>
                 <div>
                     <Text sx={{ wordWrap: 'break-word', whitespace: 'pre-wrap' }}>{value}</Text>
@@ -127,9 +122,9 @@ export const StopInput = ({ variant }: { variant: "from" | "to" }) => {
     useEffect(() => {
         const delay = 1000
         let bounce: any
-        if (input) {
+        if (input.length > 2) {
             setLoading(true)
-            bounce = setTimeout(() => { apiCall("POST", "/api/autocomplete", { input: input }).then((e) => { setData(e.map((e: any) => ({ ...e, value: e.stop_name }))) }).finally(() => setLoading(false)) }, delay)
+            bounce = setTimeout(() => { queryStops(input).then((e) => { setData(e.results.map((e: any) => ({ ...e, value: e.lsname }))) }).finally(() => setLoading(false)) }, delay)
         } else {
             setData([])
         }
@@ -144,15 +139,15 @@ export const StopInput = ({ variant }: { variant: "from" | "to" }) => {
     }, [i])
 
     return (<Autocomplete
-        icon={selected ? <StopIcon network={selected.network as number} /> : loading ? <Loader size="sm" /> : (variant == 'from' ? <IconArrowBarRight /> : <IconArrowBarToRight />)}
+        icon={selected ? <StopIcon network_id={selected.network_id as number} /> : loading ? <Loader size="sm" /> : (variant == 'from' ? <IconArrowBarRight /> : <IconArrowBarToRight />)}
         placeholder={variant == 'from' ? 'Honnan?' : 'Hova?'}
         data={input.length ? data.filter((item, i, array) => array.findIndex((e) => e.value === item.value) === i) : stops}
         switchDirectionOnFlip={false}
         filter={() => true}
         value={selected?.value || input}
         dropdownComponent={Dropdown}
-        onChange={(e) => { setSelected(undefined); setInput(e) }}
-        onItemSubmit={(e: any) => { setStops([{ value: e.value, id: e.id, network: e.network }, ...stops.filter(item => !isEqual(item, { value: e.value, id: e.id, network: e.network }))]); setSelected(e); setInput(e.value) }}
+        onChange={(e) => { if (selected) { return } setSelected(undefined); setInput(e) }}
+        onItemSubmit={(e: any) => { setStops([{ ...e, value: e.lsname }, ...stops.filter(item => !isEqual(item, { ...e, value: e.lsname }))]); setSelected(e); setInput(e) }}
         styles={(theme) => ({
             dropdown: {
                 background: '#1A1B1E',

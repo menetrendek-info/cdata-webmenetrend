@@ -1,4 +1,5 @@
-import axios, { all } from "axios"
+import { StringMappingType } from "typescript"
+
 const api = "https://menetrendek.hu/menetrend/newinterface/index.php"
 
 const allNetworks = [
@@ -15,6 +16,7 @@ const allNetworks = [
 ]
 
 export type Stop = {
+    value?: string,
     "settlement_name": string,
     "lsname": string,
     "ls_id": number,
@@ -33,123 +35,6 @@ export type Stop = {
 
 export const dateString = (date: Date) => {
     return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
-}
-
-export const testCORSBlocker = async () => {
-    // send a request to the api and return true on success and false on cors error
-    const body = {
-        "func": "getRoutes",
-        "params": {
-            "datum": "2023-05-13",
-            "erk_stype": "megallo",
-            "ext_settings": "block",
-            "filtering": 0,
-            "helyi": "No",
-            "networks": [
-                1,
-                2,
-                3,
-                10,
-                11,
-                12,
-                13,
-                14,
-                24,
-                25,
-                26
-            ],
-            "honnan": "Székesfehérvár, autóbusz-állomás",
-            "honnan_ls_id": 599,
-            "honnan_settlement_id": 1482,
-            "honnan_site_code": "1482F1",
-            "hour": "09",
-            "hova": "Perkáta",
-            "hova_ls_id": 0,
-            "hova_settlement_id": 1935,
-            "hova_site_code": "",
-            "ind_stype": "megallo",
-            "keresztul": "",
-            "keresztul_eovx": "",
-            "keresztul_eovy": "",
-            "keresztul_ls_id": "",
-            "keresztul_settlement_id": "",
-            "keresztul_site_code": "",
-            "keresztul_stype": "megallo",
-            "maxatszallas": "5",
-            "maxvar": "240",
-            "maxwalk": 1000,
-            "timeWindow": 180,
-            "timeBuffer": "0",
-            "distanceBuffer": "0",
-            "min": "57",
-            "napszak": "0",
-            "naptipus": 0,
-            "odavissza": 0,
-            "preferencia": 0,
-            "rendezes": "1",
-            "discountPercent": "0",
-            "submitted": 1,
-            "talalatok": 1,
-            "target": 0,
-            "utirany": "oda",
-            "var": "0",
-            "caller": "browser",
-            "lang": "hu",
-            "currentMode": "stop_based",
-            "use_daemon": "",
-            "dayPartText": "Egész nap",
-            "orderText": "Indulási idő",
-            "discountText": "Teljesárú",
-            "timeText": "09:57",
-            "searchInput": {
-                "from": {
-                    "settlement_name": "Székesfehérvár",
-                    "lsname": "Székesfehérvár, autóbusz-állomás",
-                    "relevance": 6,
-                    "ls_id": 599,
-                    "site_code": "1482F1",
-                    "settlement_id": 1482,
-                    "type": "megallo",
-                    "network_id": 1,
-                    "geomEov": {
-                        "type": "Point",
-                        "coordinates": [
-                            601641,
-                            205153
-                        ]
-                    }
-                },
-                "to": {
-                    "settlement_name": "Perkáta",
-                    "lsname": "Perkáta",
-                    "ls_id": 0,
-                    "site_code": "",
-                    "settlement_id": 1935,
-                    "type": "telepules",
-                    "network_id": 0,
-                    "geomEov": {
-                        "type": "Point",
-                        "coordinates": [
-                            627870,
-                            190836
-                        ]
-                    }
-                },
-                "through": null
-            }
-        }
-    }
-    return fetch(api, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-    }).then((response) => {
-        return true
-    }).catch((error) => {
-        return false
-    })
 }
 
 export const queryStops = async (query: string) => {
@@ -180,7 +65,79 @@ export const queryStops = async (query: string) => {
     })
 }
 
-export const queryRoutes = (date: Date, from: Stop, to: Stop, through?: Stop) => {
+export type jaratinfo = {
+    prebuy: number,
+    alacsonypadlos: number,
+    network: number,
+    nagysebessegu: number,
+    jelleg: string,
+    emeltszintu: number,
+    vonalnev: string,
+    wifi: number,
+    internet: number,
+    internetes_jegy: number,
+    terelout: number,
+    vonalelnevezes: string,
+    remark: string,
+    news: {
+        Title: string,
+        Url: string
+    },
+    CountyPass: string,
+    distance: number,
+    fare: number,
+    no_discountable_fare: number,
+    additional_ticket_price: number,
+    seat_ticket_price: number,
+    train_cat: string,
+    fare_50_percent: number,
+    fare_90_percent: number,
+    dcLsId: number,
+    bube_accepted: number,
+}
+
+export type route = {
+    ind_prefix: string,
+    indulasi_hely: string,
+    ind_kulterulet: number,
+    departureCity: string,
+    departureStation: string,
+    erk_prefix: string,
+    erkezesi_hely: string,
+    erk_kulterulet: number,
+    arrivalCity: string,
+    arrivalStation: string,
+    indulasi_ido: string,
+    erkezesi_ido: string,
+    atszallasok_szama: number,
+    osszido: string,
+    indulasi_hely_info: number,
+    jaratinfok: {
+        [key: string]: jaratinfo
+    },
+    atszallasinfok: {
+        [key: string]: {
+            atszallasinfo: string,
+            atszallohely: string,
+            atszallaskorlatozas: string,
+        }
+    },
+    explanations: Array<string>,
+    totalDistance: number,
+    totalFare: number,
+    totalFare50: number,
+    totalFare90: number,
+    totalAdditionalTicketPrice: number,
+    eTicketAvailable: number,
+    riskyTransfer: boolean,
+    kifejtes_postjson: fieldvalue,
+    nativeData: Array<{ [key: string]: number | string | any }>,
+    ossztav: string,
+    talalat_kozlekedik: string
+}
+
+
+export const queryRoutes = async (date: Date, from: Stop, to: Stop, through?: Stop) => {
     const body = {
         "func": "getRoutes",
         "params": {
@@ -239,6 +196,67 @@ export const queryRoutes = (date: Date, from: Stop, to: Stop, through?: Stop) =>
                 through,
             }
         }
+    }
+    return fetch(api, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    }).then((response) => {
+        return response.json()
+    }).catch((error) => {
+        return error
+    })
+}
+
+export type fieldvalue = {
+    runcount: number,
+    runs: {
+        [key: string]: {
+            [key: string]: number | string
+        }
+    }
+}
+
+export type nativeData = Array<{ [key: string]: number | string | any }>
+
+export type expostitionItem = {
+    allomas: string,
+    localCode: string,
+    idopont: string,
+    muvelet: string,
+    varhato_indulas: string,
+    rendszam: string,
+    keses_perc: number,
+    OwnerName?: string,
+    runId?: number,
+    jaratszam?: string,
+    network?: number,
+    jarmu?: string,
+    DomainCompanyName?: string,
+    Headsign?: string,
+    jaratinfo?: jaratinfo,
+    news?: {
+        Title: string,
+        Url: string,
+    },
+    vegallomasok?: string,
+    description?: string,
+    tarsasag?: string,
+}
+
+export const queryExpostition = (date: Date, fieldvalue: fieldvalue, nativeData: nativeData) => {
+    const body = {
+        "debug": 0,
+        "type": "",
+        "query": "jarat_kifejtes_text_jsonC",
+        "currentMode": "stop_based",
+        "use_daemon": "",
+        "datum": dateString(date),
+        "lang": "hu",
+        "fieldvalue": fieldvalue,
+        "nativeData": nativeData
     }
     return fetch(api, {
         method: 'POST',

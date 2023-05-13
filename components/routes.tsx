@@ -6,7 +6,7 @@ import useColors from "./colors"
 import { ColoredStopIcon, StopIcon } from "../components/stops"
 import { memo, useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
-import { dateString, exposition, route } from "../client";
+import { dateString } from "../client";
 import { useMediaQuery } from "@mantine/hooks";
 import dynamic from "next/dynamic"
 import { apiCall } from "./api";
@@ -19,14 +19,6 @@ export const currency = new Intl.NumberFormat('hu-HU', { style: 'currency', curr
 function onlyUnique(value: any, index: any, self: any) {
     return self.indexOf(value) === index;
 }
-
-const RMP = memo((props: { id: any, details: any, exposition: any }) => {
-    if (typeof window === 'undefined') return <></>
-    const RouteMapView = dynamic(() => import('../components/maps').then((mod) => mod.RouteMapView), {
-        ssr: false
-    })
-    return <RouteMapView {...props} />
-})
 
 export const ActionBullet = memo(({ muvelet, network, size, ...props }: { muvelet: "átszállás" | "leszállás" | "felszállás", network?: number, size?: number }) => {
     if (!size) { size = 20 }
@@ -89,16 +81,13 @@ export const RouteExposition = ({ route, exposition, options }: { route: route, 
         {options?.disableMap ? <></> : <Button variant="outline" leftIcon={!geoInfo || !exposition ? <Loader size="sm" /> : !mapView ? <IconMap /> : <IconListDetails />} onClick={!geoInfo || !exposition ? () => { } : () => setMapView(!mapView)}>
             {!mapView ? "Térkép nézet" : "Idővonal nézet"}
         </Button>}
-        {mapView ?
-            !geoInfo || !exposition ? <></> : <RMP exposition={exposition} details={geoInfo} id={(new Date()).getTime()} />
-            : <Timeline active={Infinity}>
-                {exposition.map((item, index) => (<Timeline.Item lineVariant={item.action === "átszállás" ? "dashed" : "solid"} key={index} bullet={<ActionBullet muvelet={item.action} network={item.network!} />}>
-                    <Stack spacing={0}>
-                        <ExpositionBody item={item} options={options} />
-                    </Stack>
-                </Timeline.Item>))}
-            </Timeline>
-        }
+        <Timeline active={Infinity}>
+            {exposition.map((item, index) => (<Timeline.Item lineVariant={item.action === "átszállás" ? "dashed" : "solid"} key={index} bullet={<ActionBullet muvelet={item.action} network={item.network!} />}>
+                <Stack spacing={0}>
+                    <ExpositionBody item={item} options={options} />
+                </Stack>
+            </Timeline.Item>))}
+        </Timeline>
     </Stack>)
 }
 

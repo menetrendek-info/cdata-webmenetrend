@@ -4,10 +4,11 @@ import { IconSearch } from "@tabler/icons"
 import { useState } from "react";
 import Link from "next/link"
 import { useRouter } from "next/router"
-import { Stop, StopInput } from "./stops";
+import { StopInput } from "./stops";
 import { useContext, useCallback, useEffect } from "react"
 import { Input } from "@/pages/_app";
-import { dateString } from "@/client";
+import { dateString, Stop } from "@/client";
+import { compressToBase64 } from "lz-string"
 
 export const Search = () => {
     const theme = useMantineTheme()
@@ -21,11 +22,9 @@ export const Search = () => {
 
     const generateUrl = useCallback(async () => {
         if (!from || !to) { setSearchHref("#"); return }
-        const f_id: any = parseInt(`${from.id}${from.network === 0 ? '0' : '1'}`)
-        const t_id: any = parseInt(`${to.id}${to.network === 0 ? '0' : '1'}`)
         setSearchHref(`/routes?${(new URLSearchParams({
-            ...(from ? { from: f_id } : {}),
-            ...(to ? { to: t_id } : {}),
+            ...(from ? { from: compressToBase64(JSON.stringify(from)) } : {}),
+            ...(to ? { to: compressToBase64(JSON.stringify(to)) } : {}),
             ...(date ? dateString(date) === dateString(new Date()) ? {} : { d: dateString(date) } : {})
         })).toString()}`)
     }, [from, to, from_input, to_input, date])
