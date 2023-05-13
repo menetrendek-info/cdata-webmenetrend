@@ -112,7 +112,7 @@ export const StopInput = ({ variant }: { variant: "from" | "to" }) => {
 
     useEffect(() => {
         if (stops.length) {
-            if ((stops[0] as any).s_id) {
+            if (!stops[0].geomEov?.type) {
                 setStops([])
                 showNotification({ title: 'Megállóidat töröltük!', message: 'A gyakori megállók listája nem kompatibilis a jelenlegi verzióval. A lista törlésre került.', color: 'yellow', icon: <IconClearAll />, id: 'error-cleared-stops' })
             }
