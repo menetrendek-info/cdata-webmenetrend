@@ -36,15 +36,6 @@ const Settings: NextPage = () => {
                     </Stack>
                 </Stack>
             </ContentCard></div>
-            <div id="calendar"><CheckboxCard onChange={(e) => { setCookie('maps-beta', e.toString(), { path: '/', maxAge: 60 * 60 * 365 }) }} title={<Group spacing="xs">
-                <Text>Térkép nézet</Text>
-                <Badge size="xs">BETA</Badge>
-            </Group>}>
-                <Stack spacing={4}>
-                    <Text size="md">Útvonaltervek ábrázolása a térképen, hogy a lehető legykönnyebb legyen az átszállás.</Text>
-                    <Text color={warning} size="xs">A térképek egymás utáni megnyitása és bezárása crash-hez vezethet!</Text>
-                </Stack>
-            </CheckboxCard></div>
         </Stack>
     </>)
 }
