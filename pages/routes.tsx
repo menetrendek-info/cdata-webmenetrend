@@ -41,6 +41,27 @@ const Route = ({ route, index }: { route: route, index: any }) => {
     const [body, setBody] = useState<CalendarEvent | undefined>()
     const [cookies] = useCookies(["calendar-service", "maps-beta"])
 
+    useEffect(() => {
+        if (!body && exposition) {
+            const start = new Date(`${router.query['d'] || dateString(new Date())} ${route.indulasi_ido}`)
+            const end = new Date(`${router.query['d'] || dateString(new Date())} ${route.erkezesi_ido}`)
+            let details: string[] = []
+            for (let action of (Object.keys(exposition.results).map(k => exposition.results[k]) as Array<exposition>)) {
+                const fb = action.muvelet === "felszállás" ? action.jaratinfo?.FromBay ? `\nKocsiállás: ${action.jaratinfo.FromBay}` : '' : ''
+                const fare = action.muvelet === "felszállás" && action.jaratinfo?.fare ? (action.jaratinfo?.fare < 0 ? '' : `${action.jaratinfo?.fare} Ft | `) : ''
+                const more = action.muvelet === "felszállás" ? `${fb}\n${fare}${action.jaratinfo?.utazasi_tavolsag} km | ${action.jaratinfo?.travelTime} perc | ${action.runId}\n${action.vegallomasok}` : ''
+                details.push(`- ${action.idopont} ${action.muvelet} ${action.allomas}${more}\n`)
+            }
+            setBody({
+                start,
+                end,
+                description: `${details.join("\n")}`,
+                location: exposition.results["1"].allomas,
+                title: `${route.departureCity} - ${route.arrivalCity}`
+            })
+        }
+    }, [body, exposition])
+
     return (<>
         <Accordion.Control onClick={() => {
             queryExpostition(router.query.d ? new Date(router.query.d as string) : new Date(), route.kifejtes_postjson, route.nativeData).then(async (e) => {
