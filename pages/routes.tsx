@@ -1,6 +1,6 @@
 import type { NextPage } from "next"
 import { apiCall } from "../components/api"
-import { dateString, queryRoutes, route } from "../client"
+import { dateString, exposition, queryExpostition, queryRoutes, route } from "../client"
 import { PageHeading } from "../components/page"
 import { IconCalendarEvent, IconClock, IconLine, IconShare } from "@tabler/icons"
 import { Accordion, ActionIcon, Group, Loader, Skeleton, Slider, Text, Timeline, Stack, Space } from "@mantine/core"
@@ -35,49 +35,24 @@ const RE = memo((props: any) => {
 })
 
 const Route = ({ route, index }: { route: route, index: any }) => {
-    const [exposition, setExposition] = useState<Array<exposition>>([])
+    const [exposition, setExposition] = useState<any>(undefined)
     const router = useRouter()
     const [file, setFile] = useState<File | undefined>()
     const [body, setBody] = useState<CalendarEvent | undefined>()
     const [cookies] = useCookies(["calendar-service", "maps-beta"])
 
-    useEffect(() => {
-        if (!body && exposition.length) {
-            const start = new Date(`${router.query['d'] || dateString(new Date())} ${route.indulasi_ido}`)
-            const end = new Date(`${router.query['d'] || dateString(new Date())} ${route.erkezesi_ido}`)
-            let details: string[] = []
-            for (let action of exposition) {
-                const fb = action.action === "felszállás" ? action.departurePlatform ? `\nKocsiállás: ${action.departurePlatform}` : '' : ''
-                const fare = action.action === "felszállás" && action.fare ? (action.fare < 0 ? '' : `${action.fare} Ft | `) : ''
-                const more = action.action === "felszállás" ? `${fb}\n${fare}${action.distance} km | ${action.duration} perc | ${action.runId}\n${action.stations}` : ''
-                details.push(`- ${action.time} ${action.action} ${action.station}${more}\n`)
-            }
-            setBody({
-                start,
-                end,
-                description: `${details.join("\n")}`,
-                location: exposition[0].station,
-                title: `${route.departureCity} - ${route.arrivalCity}`
-            })
-        }
-    }, [body, exposition])
-
     return (<>
         <Accordion.Control onClick={() => {
-            apiCall("POST", "/api/exposition", { exposition: route.expositionData.exposition, nativeData: route.expositionData.nativeData, date: dateString(new Date()) }).then(async (e) => {
-                setExposition(e.exposition)
-                const id = Date.now().toString()
-                const image = `/api/render?${router.asPath.split('?')[1]}&d=${router.query['d'] || dateString(new Date())}&i=${index}`
-                const blob = await (await fetch(image)).blob()
-                setFile(new File([blob], `menetrendek-${id}.jpeg`, { type: "image/jpeg" }))
+            queryExpostition(router.query.d ? new Date(router.query.d as string) : new Date(), route.kifejtes_postjson, route.nativeData).then(async (e) => {
+                setExposition(e)
+                
             })
         }}>
             <RouteSummary item={route} />
         </Accordion.Control>
         <Accordion.Panel>
-            {!exposition.length ? (<Stack>
-                {cookies["maps-beta"] === "false" ? <></> : <Skeleton height={37} />}
-                <Timeline active={Infinity}>{Array(route.expositionData.exposition.runcount * 2).fill(0).map((v, i, arr) => {
+            {!exposition ? (<Stack>
+                <Timeline active={Infinity}>{Array(route.kifejtes_postjson.runcount * 2).fill(0).map((v, i, arr) => {
                     if (i + 1 === arr.length) {// Last element
                         return (<Timeline.Item key={i} bullet={<ActionBullet muvelet="leszállás" network={1} />}>
                             <Skeleton radius="lg" height={53} />
@@ -92,7 +67,7 @@ const Route = ({ route, index }: { route: route, index: any }) => {
                     <Loader size={28} />
                 </Group>
             </Stack>) : <>
-                <RE route={route} exposition={exposition} options={{ disableMap: (cookies["maps-beta"]) === "false" }} />
+                <RE route={route} exposition={Object.keys(exposition.results).map((key: any) => exposition.results[key])} options={{ disableMap: (cookies["maps-beta"]) === "false" }} />
                 <Group position="right">
                     <ActionIcon role="button" aria-label="Hozzáadás a naptárhoz" onClick={() => cal(Number(cookies["calendar-service"]), body)}>
                         <IconCalendarEvent />
@@ -141,7 +116,8 @@ const Routes: NextPage = (props: any) => {
     useEffect(() => {
         if (cookies["use-route-limit"] === "true") {
             let disp: any = []
-            setDisplay(props.routes.routes.map((item: route, i: any) => {
+            setDisplay(Object.keys(props.routes.results.talalatok).map((key: any, i: any) => {
+                const item: route = props.routes.results.talalatok[key]
                 const start = item.indulasi_ido.split(":").map((e: string) => Number(e))
                 const startmin = start[0] * 60 + start[1]
                 if (startmin <= time!) return
@@ -162,7 +138,7 @@ const Routes: NextPage = (props: any) => {
         <Accordion classNames={classes}>
             {!display.length ? <Text size="sm" align="center" color="dimmed">A megadott idő után nem találtunk semmit.</Text> :
                 display.map((key: any, i: any) => {
-                    const item: route = props.routes.routes[key]
+                    const item: route = props.routes.results.talalatok[key]
                     if (!item) return <></>
                     const start = item.indulasi_ido.split(":").map((e: string) => Number(e))
                     const startmin = start[0] * 60 + start[1]
