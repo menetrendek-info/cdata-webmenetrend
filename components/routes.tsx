@@ -107,7 +107,7 @@ export const ExpositionBody = ({ item, options, onClick }: { item: exposition, o
         {!item.jaratinfo?.kozlekedik ? <></> : <Text size="sm">Közlekedik: {item.jaratinfo.kozlekedik}</Text>}
         {item.muvelet !== "felszállás" ? <></> :
             <Group mt={4}>
-                {item.jaratinfo?.CountyPass !== "" ? <MyBadge icon={<IconTicket />} text={`Országos vagy ${item.jaratinfo?.CountyPass} vármegyebérlet`} /> : <></>}
+                {item.jaratinfo?.CountyPass !== "" ? <MyBadge icon={<IconTicket />} text={`${item.jaratinfo?.CountyPass} vármegyebérlet`} /> : <></>}
             </Group>
         }
     </>)
