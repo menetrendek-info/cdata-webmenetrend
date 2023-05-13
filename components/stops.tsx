@@ -19,9 +19,9 @@ const Dropdown = ({ children, ...props }: any) => {
     </ScrollArea>)
 }
 
-export const StopIcon = ({ network_id, size, ...props }: { network_id: number, size?: number } & any) => {
+export const StopIcon = ({ network, size, ...props }: { network: number, size?: number } & any) => {
     props = { ...props, size: size ? size : 24 }
-    switch (network_id) {
+    switch (network) {
         case 0: // City
             return <IconMapPin {...props} />
         case 1: // Bus station
@@ -47,10 +47,10 @@ export const StopIcon = ({ network_id, size, ...props }: { network_id: number, s
     }
 }
 
-export const ColoredStopIcon = (({ network_id, size, ...props }: { network_id: number, size?: number } & any) => {
+export const ColoredStopIcon = (({ network, size, ...props }: { network: number, size?: number } & any) => {
     let color: MantineColor | undefined = undefined
     let mySize = size ? size : 24
-    switch (network_id) {
+    switch (network) {
         case 0: // City
             color = "grape"
             break
@@ -83,7 +83,7 @@ export const ColoredStopIcon = (({ network_id, size, ...props }: { network_id: n
         default:
             break
     }
-    return <ThemeIcon color={color || "dark"} sx={{ borderRadius: '100%' }} variant="light" size={mySize}><StopIcon stroke={props.stroke} network_id={network_id} size={(mySize / 7) * 6} /></ThemeIcon>
+    return <ThemeIcon color={color || "dark"} sx={{ borderRadius: '100%' }} variant="light" size={mySize}><StopIcon stroke={props.stroke} network={network} size={(mySize / 7) * 6} /></ThemeIcon>
 })
 
 const AutoCompleteItem = forwardRef<HTMLDivElement, SelectItemProps & Stop>(
@@ -91,7 +91,7 @@ const AutoCompleteItem = forwardRef<HTMLDivElement, SelectItemProps & Stop>(
         <div ref={ref} {...others}>
             <Group noWrap align="left">
                 <div style={{ zIndex: '99 !important' }}>
-                    <StopIcon network_id={network_id!} />
+                    <StopIcon network={network_id!} />
                 </div>
                 <div>
                     <Text sx={{ wordWrap: 'break-word', whitespace: 'pre-wrap' }}>{value}</Text>
@@ -139,7 +139,7 @@ export const StopInput = ({ variant }: { variant: "from" | "to" }) => {
     }, [i])
 
     return (<Autocomplete
-        icon={selected ? <StopIcon network_id={selected.network_id as number} /> : loading ? <Loader size="sm" /> : (variant == 'from' ? <IconArrowBarRight /> : <IconArrowBarToRight />)}
+        icon={selected ? <StopIcon network={selected.network_id as number} /> : loading ? <Loader size="sm" /> : (variant == 'from' ? <IconArrowBarRight /> : <IconArrowBarToRight />)}
         placeholder={variant == 'from' ? 'Honnan?' : 'Hova?'}
         data={input.length ? data.filter((item, i, array) => array.findIndex((e) => e.value === item.value) === i) : stops}
         switchDirectionOnFlip={false}

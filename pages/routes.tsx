@@ -45,7 +45,10 @@ const Route = ({ route, index }: { route: route, index: any }) => {
         <Accordion.Control onClick={() => {
             queryExpostition(router.query.d ? new Date(router.query.d as string) : new Date(), route.kifejtes_postjson, route.nativeData).then(async (e) => {
                 setExposition(e)
-                
+                const id = Date.now().toString()
+                const image = `/api/render?${router.asPath.split('?')[1]}&d=${router.query['d'] || dateString(new Date())}&i=${index}`
+                const blob = await (await fetch(image)).blob()
+                setFile(new File([blob], `menetrendek-${id}.jpeg`, { type: "image/jpeg" }))
             })
         }}>
             <RouteSummary item={route} />
@@ -130,7 +133,7 @@ const Routes: NextPage = (props: any) => {
     }, [time, cookies["use-route-limit"]])
 
     return (<>
-        <PageHeading title="Járatok" subtitle={`Járatok ${props.routes.fromSettle} és ${props.routes.toSettle} között`} icon={IconLine} />
+        <PageHeading title="Járatok" subtitle={`Járatok ${props.routes.nativeResults.Params['FromSettle:']} és ${props.routes.nativeResults.Params['ToSettle:']} között`} icon={IconLine} />
         {cookies["use-route-limit"] !== 'true' ? <></> : <>
             <Slider my="sm" step={15} value={sliderVal || 0} onChange={setSliderVal} thumbChildren={<IconClock size={30} />} styles={{ thumb: { borderWidth: 0, padding: 0, height: 25, width: 25 } }} onChangeEnd={setTime} marks={marks()} min={0} max={1440} size="lg" label={(e) => `${Math.floor(e / 60).toString().padStart(2, '0')}:${(e % 60).toString().padStart(2, '0')}`} />
             <Space h="xs" />
@@ -155,7 +158,7 @@ const Routes: NextPage = (props: any) => {
 
 Routes.getInitialProps = async (ctx: any) => {
     return {
-        routes: await queryRoutes(ctx.query.d || new Date(), JSON.parse(decompressFromBase64(ctx.query.from)), JSON.parse(decompressFromBase64(ctx.query.to))),
+        routes: await queryRoutes(ctx.query.d ? new Date(ctx.query.d as string) : new Date(), JSON.parse(decompressFromBase64(ctx.query.from as string)), JSON.parse(decompressFromBase64(ctx.query.to as string))),
     }
 }
 

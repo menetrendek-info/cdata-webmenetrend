@@ -84,7 +84,7 @@ export type jaratinfo = {
         Url: string
     },
     CountyPass: string,
-    distance: number,
+    utazasi_tavolsag: number,
     fare: number,
     no_discountable_fare: number,
     additional_ticket_price: number,
@@ -94,6 +94,10 @@ export type jaratinfo = {
     fare_90_percent: number,
     dcLsId: number,
     bube_accepted: number,
+    FromBay?: string,
+    travelTime?: number,
+    ToBay?: string,
+    kozlekedik?: string,
 }
 
 export type route = {
@@ -203,8 +207,8 @@ export const queryRoutes = async (date: Date, from: Stop, to: Stop, through?: St
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
-    }).then((response) => {
-        return response.json()
+    }).then(async (response) => {
+        return await response.json()
     }).catch((error) => {
         return error
     })
@@ -221,11 +225,11 @@ export type fieldvalue = {
 
 export type nativeData = Array<{ [key: string]: number | string | any }>
 
-export type expostitionItem = {
+export type exposition = {
     allomas: string,
     localCode: string,
     idopont: string,
-    muvelet: string,
+    muvelet: "átszállás" | "leszállás" | "felszállás",
     varhato_indulas: string,
     rendszam: string,
     keses_perc: number,
@@ -244,6 +248,13 @@ export type expostitionItem = {
     vegallomasok?: string,
     description?: string,
     tarsasag?: string,
+    TimeForChange?: number,
+    byWhat?: string,
+    tavolsag?: number,
+    ido?: number,
+    ChangeTime?: string,
+    ChangeRoute?: string,
+    ChangeMode?: string,
 }
 
 export const queryExpostition = (date: Date, fieldvalue: fieldvalue, nativeData: nativeData) => {
@@ -264,8 +275,8 @@ export const queryExpostition = (date: Date, fieldvalue: fieldvalue, nativeData:
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
-    }).then((response) => {
-        return response.json()
+    }).then(async (response) => {
+        return (await response.json())
     }).catch((error) => {
         return false
     })

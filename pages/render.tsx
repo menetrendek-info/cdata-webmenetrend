@@ -1,10 +1,11 @@
 import { Box, Center, Group, MantineProvider, Paper, Space, Text } from "@mantine/core";
 import { IconLink } from "@tabler/icons";
 import type { NextPage } from "next";
-import { dateString } from "../client";
+import { dateString, queryExpostition, queryRoutes } from "../client";
 import { apiCall, getHost } from "../components/api";
 import { RouteExposition, RouteSummary } from "../components/routes";
 import React from "react";
+import { decompressFromBase64 } from "lz-string";
 
 const Render: NextPage = (props: any) => {
     const { route, exposition } = props
@@ -41,14 +42,8 @@ const Render: NextPage = (props: any) => {
 Render.getInitialProps = async (ctx) => {
     const host = getHost(ctx.req)
     let props: any = {}
-    const query = {
-        from: Number(ctx.query['from'] as string),
-        to: Number(ctx.query['to'] as string),
-        date: ctx.query['d'] as string || dateString(new Date()),
-        index: Number(ctx.query['i'] as string),
-    }
-    props.route = (await apiCall("POST", `${host}/api/routes`, query)).routes[query.index]
-    props.exposition = (await apiCall("POST", `${process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://menetrendek.info"}/api/exposition`, { exposition: props.route.expositionData.exposition, nativeData: props.route.expositionData.nativeData, datestring: query.date })).exposition
+    props.route = (await queryRoutes(ctx.query.d ? new Date(ctx.query.d as string) : new Date(), JSON.parse(decompressFromBase64(ctx.query.from as string)), JSON.parse(decompressFromBase64(ctx.query.to as string)))).results.talalatok[ctx.query.i as string]
+    props.exposition = (await queryExpostition(ctx.query.d ? new Date(ctx.query.d as string) : new Date(), props.route.kifejtes_postjson, props.route.nativeData)).results
     return props
 }
 
